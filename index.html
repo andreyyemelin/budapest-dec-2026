@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поездка в Будапешт — Информационный портал</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        wizz: {
+                            pink: '#e10075',
+                            purple: '#29166f'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .shadow-card { box-shadow: none !important; border: 1px solid #ccc !important; }
+        }
+        .bg-hero {
+            background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.85)), url('https://media.cntraveller.com/photos/673763550788484ddcc59ca0/4:3/w_7284,h_5463,c_limit/Hungary-Budapest-GettyImages-2156020912.jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen antialiased selection:bg-slate-200">
+
+    <!-- Password Protection Gate -->
+    <div id="login-gate" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 text-center border border-slate-700">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900">Доступ к информации</h2>
+                <p class="text-sm text-slate-500 mt-1">Введите пароль для входа на портал поездки</p>
+            </div>
+            <form id="login-form" onsubmit="checkPassword(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="password-input" placeholder="Введите пароль" 
+                        class="w-full text-center tracking-widest text-lg px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none font-bold">
+                </div>
+                <p id="error-msg" class="text-xs text-rose-600 hidden font-semibold">Неверный пароль. Попробуйте еще раз.</p>
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl transition duration-200">
+                    Войти
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content Container (Hidden until logged in) -->
+    <div id="app-content" class="hidden min-h-screen flex flex-col">
+
+        <!-- Top Hero Banner with Budapest Image -->
+        <header class="bg-hero text-white relative shadow-lg">
+            <div class="max-w-5xl mx-auto px-4 pt-10 pb-12 sm:pt-14 sm:pb-16 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-6 no-print">
+                    <span class="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border border-white/20">
+                        Личный кабинет поездки
+                    </span>
+                    <button onclick="logout()" class="text-xs text-slate-300 hover:text-white flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Выйти</span>
+                    </button>
+                </div>
+                <div>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Поездка в Будапешт</h1>
+                    <p class="text-slate-200 text-sm sm:text-base mt-2 flex items-center gap-2 font-medium">
+                        <i class="fa-solid fa-calendar-days text-pink-400"></i>
+                        15 декабря — 22 декабря 2026 года
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation Bar -->
+        <nav class="bg-slate-900 sticky top-0 z-40 shadow-md no-print border-b border-slate-800">
+            <div class="max-w-5xl mx-auto px-2 sm:px-4">
+                <div class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 scrollbar-none">
+                    <!-- Flight Tab -->
+                    <button onclick="switchTab('flight')" id="tab-btn-flight" class="tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-pink-600 text-white shadow-sm transition">
+                        <i class="fa-solid fa-plane"></i>
+                        <span>Перелёт</span>
+                    </button>
+
+                    <!-- Hotels Tab -->
+                    <button onclick="switchTab('hotel')" id="tab-btn-hotel" class="tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-building-user"></i>
+                        <span>Жильё / Апартаменты</span>
+                    </button>
+
+                    <!-- Photos Tab -->
+                    <button onclick="switchTab('photos')" id="tab-btn-photos" class="tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Альбом поездки</span>
+                    </button>
+
+                    <!-- Internet Tab -->
+                    <button onclick="switchTab('internet')" id="tab-btn-internet" class="tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-wifi"></i>
+                        <span>Интернет & Wi-Fi</span>
+                    </button>
+
+                    <!-- Important Phones Tab -->
+                    <button onclick="switchTab('phones')" id="tab-btn-phones" class="tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Важные телефоны</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="max-w-5xl mx-auto px-4 py-6 space-y-6 flex-1 w-full">
+
+            <!-- SECTION 1: FLIGHT DETAILS -->
+            <div id="tab-content-flight" class="tab-content space-y-6">
+                <!-- Header Tools -->
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-plane-departure text-slate-700"></i> Данные о рейсах
+                    </h2>
+                    <!-- Boarding Passes Button -->
+                    <button disabled class="bg-slate-100 text-slate-400 text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 border border-slate-200 font-semibold cursor-not-allowed opacity-80 shadow-none" title="Регистрация ещё не открыта">
+                        <i class="fa-solid fa-passport"></i>
+                        <span>Посадочные талоны</span>
+                        <span class="text-[10px] font-normal bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded">Скоро</span>
+                    </button>
+                </div>
+
+                <!-- Quick Status Bar / Booking Code -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">PNR (Код брони)</span>
+                            <span class="text-2xl font-black text-slate-900 tracking-wider">OV9Y4B</span>
+                        </div>
+                        <div class="h-10 w-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
+                            <i class="fa-solid fa-ticket text-lg"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Авиакомпания</span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-xl font-bold text-slate-900">Wizz Air</span>
+                                <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Wizz_Air_logo.svg/3840px-Wizz_Air_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Wizz Air" class="h-4 object-contain">
+                            </div>
+                        </div>
+                        <div class="h-10 w-10 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600">
+                            <i class="fa-solid fa-plane text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flight Schedule Cards -->
+                <div class="space-y-4">
+                    <!-- Outbound Flight -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center text-sm font-medium">
+                            <div class="flex items-center gap-2.5">
+                                <span class="bg-pink-600 text-xs px-2.5 py-0.5 rounded font-bold uppercase">Туда</span>
+                                <span class="font-bold flex items-center gap-2">
+                                    Рейс W4 2294
+                                    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Wizz_Air_logo.svg/3840px-Wizz_Air_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Wizz Air" class="h-3.5 bg-white px-1 py-0.5 rounded object-contain inline-block">
+                                </span>
+                            </div>
+                            <div class="text-slate-300 text-xs">
+                                Вторник, 15 Декабря 2026
+                            </div>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-7 gap-6 items-center">
+                            <div class="md:col-span-2 text-center md:text-left">
+                                <span class="text-3xl font-extrabold text-slate-900 block">14:25</span>
+                                <span class="text-sm font-bold text-slate-700 block">Кишинёв (RMO)</span>
+                                <span class="text-xs text-slate-500">Международный аэропорт Кишинёва</span>
+                            </div>
+
+                            <div class="md:col-span-3 flex flex-col items-center justify-center my-2 md:my-0">
+                                <span class="text-xs font-medium text-slate-500 mb-1">Время в пути: 1 ч 35 мин</span>
+                                <div class="w-full flex items-center gap-2">
+                                    <div class="h-[2px] bg-slate-300 flex-1"></div>
+                                    <i class="fa-solid fa-plane text-pink-600"></i>
+                                    <div class="h-[2px] bg-slate-300 flex-1"></div>
+                                </div>
+                                <span class="text-xs text-emerald-600 font-semibold mt-1">Прямой рейс</span>
+                            </div>
+
+                            <div class="md:col-span-2 text-center md:text-right">
+                                <span class="text-3xl font-extrabold text-slate-900 block">15:00</span>
+                                <span class="text-sm font-bold text-slate-700 block">Будапешт (BUD)</span>
+                                <span class="text-xs text-slate-500">Терминал 2B</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inbound Flight -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center text-sm font-medium">
+                            <div class="flex items-center gap-2.5">
+                                <span class="bg-slate-700 text-xs px-2.5 py-0.5 rounded font-bold uppercase">Обратно</span>
+                                <span class="font-bold flex items-center gap-2">
+                                    Рейс W4 2293
+                                    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Wizz_Air_logo.svg/3840px-Wizz_Air_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Wizz Air" class="h-3.5 bg-white px-1 py-0.5 rounded object-contain inline-block">
+                                </span>
+                            </div>
+                            <div class="text-slate-300 text-xs">
+                                Вторник, 22 Декабря 2026
+                            </div>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-7 gap-6 items-center">
+                            <div class="md:col-span-2 text-center md:text-left">
+                                <span class="text-3xl font-extrabold text-slate-900 block">15:35</span>
+                                <span class="text-sm font-bold text-slate-700 block">Будапешт (BUD)</span>
+                                <span class="text-xs text-slate-500">Терминал 2B</span>
+                            </div>
+
+                            <div class="md:col-span-3 flex flex-col items-center justify-center my-2 md:my-0">
+                                <span class="text-xs font-medium text-slate-500 mb-1">Время в пути: 1 ч 30 мин</span>
+                                <div class="w-full flex items-center gap-2">
+                                    <div class="h-[2px] bg-slate-300 flex-1"></div>
+                                    <i class="fa-solid fa-plane transform rotate-180 text-slate-700"></i>
+                                    <div class="h-[2px] bg-slate-300 flex-1"></div>
+                                </div>
+                                <span class="text-xs text-emerald-600 font-semibold mt-1">Прямой рейс</span>
+                            </div>
+
+                            <div class="md:col-span-2 text-center md:text-right">
+                                <span class="text-3xl font-extrabold text-slate-900 block">18:05</span>
+                                <span class="text-sm font-bold text-slate-700 block">Кишинёв (RMO)</span>
+                                <span class="text-xs text-slate-500">Международный аэропорт Кишинёва</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passengers and Baggage Details -->
+                <div class="space-y-4">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-slate-600"></i> Пассажиры и багаж
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Passenger 1 -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                            <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Пассажир 1</span>
+                                    <h4 class="text-lg font-bold text-slate-900">YURII PRINKO</h4>
+                                </div>
+                                <span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">Взрослый</span>
+                            </div>
+                            
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
+                                    <div class="flex items-center gap-2 text-slate-700">
+                                        <i class="fa-solid fa-bag-shopping text-slate-500"></i>
+                                        <span>Ручная кладь (под сиденье)</span>
+                                    </div>
+                                    <span class="font-bold text-slate-900">1 шт. (40×30×20 см)</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl opacity-60">
+                                    <div class="flex items-center gap-2 text-slate-700">
+                                        <i class="fa-solid fa-suitcase text-slate-400"></i>
+                                        <span>Зарегистрированный багаж</span>
+                                    </div>
+                                    <span class="font-semibold text-slate-500">0 кг</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passenger 2 -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                            <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Пассажир 2</span>
+                                    <h4 class="text-lg font-bold text-slate-900">TETIANA PRINKO</h4>
+                                </div>
+                                <span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">Взрослый</span>
+                            </div>
+                            
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
+                                    <div class="flex items-center gap-2 text-slate-700">
+                                        <i class="fa-solid fa-bag-shopping text-slate-500"></i>
+                                        <span>Ручная кладь (под сиденье)</span>
+                                    </div>
+                                    <span class="font-bold text-slate-900">1 шт. (40×30×20 см)</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2.5 bg-emerald-50 text-emerald-900 border border-emerald-100 rounded-xl">
+                                    <div class="flex items-center gap-2 font-medium">
+                                        <i class="fa-solid fa-suitcase text-emerald-600"></i>
+                                        <span>Зарегистрированный багаж</span>
+                                    </div>
+                                    <span class="font-bold text-emerald-700">1 шт. до 10 кг</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Сводка оплаты</h3>
+                    <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-100 text-sm">
+                        <div>
+                            <span class="text-xs text-slate-500 block">Заказчик</span>
+                            <span class="font-bold text-slate-800">Andrey Martyanov</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-500 block">Дата оплаты</span>
+                            <span class="font-bold text-slate-800">07/10/2026</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-500 block">Статус</span>
+                            <span class="inline-flex items-center gap-1 font-bold text-emerald-600">
+                                <i class="fa-solid fa-circle-check text-xs"></i> Оплачено
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-500 block">Общая сумма</span>
+                            <span class="font-bold text-rose-600 text-sm flex items-center gap-1.5 mt-0.5">
+                                <i class="fa-solid fa-eye-slash text-xs"></i>
+                                Цена скрыта
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: APARTMENTS / HOTELS -->
+            <div id="tab-content-hotel" class="tab-content hidden space-y-6">
+
+                <!-- Header / Quick Info -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+                        <div>
+                            <div class="flex items-center gap-2 text-xs font-bold text-rose-600 uppercase tracking-wider mb-1">
+                                <i class="fa-brands fa-airbnb text-sm"></i> Бронирование Airbnb
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900">Апартаменты в Будапеште</h2>
+                            <p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot text-rose-500"></i>
+                                Budapest, Erkel utca 18 A101, Будапешт, 1092, Венгрия
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <a href="https://www.google.com/maps/search/?api=1&query=47.4878537%2C19.0639765" target="_blank" rel="noopener noreferrer" 
+                                class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span>Как добраться</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Key Stay Info Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                            <span class="text-xs text-slate-500 font-semibold block">Прибытие</span>
+                            <span class="text-base font-bold text-slate-900 mt-0.5 block">15 дек, 16:00</span>
+                            <span class="text-[11px] text-slate-500">16:00 – 02:00 (Умный замок)</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                            <span class="text-xs text-slate-500 font-semibold block">Выезд</span>
+                            <span class="text-base font-bold text-slate-900 mt-0.5 block">22 дек, 10:00</span>
+                            <span class="text-[11px] text-slate-500">До 10:00</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                            <span class="text-xs text-slate-500 font-semibold block">Длительность</span>
+                            <span class="text-base font-bold text-slate-900 mt-0.5 block">7 ночей</span>
+                            <span class="text-[11px] text-slate-500">5 гостей (макс. 6)</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                            <span class="text-xs text-slate-500 font-semibold block">Код подтверждения</span>
+                            <span class="text-base font-bold text-slate-900 mt-0.5 block tracking-wide">HMT5M53HWZ</span>
+                            <span class="text-[11px] text-emerald-600 font-semibold">Подтверждено</span>
+                        </div>
+                    </div>
+
+                    <!-- Host Information Block -->
+                    <div class="flex items-center gap-4 bg-slate-900 text-white p-4 rounded-xl">
+                        <div class="relative flex-shrink-0">
+                            <img src="airbnbhost.png" onerror="this.onerror=null; this.src='https://placehold.co/100x100/e2e8f0/475569?text=Host';" alt="Catherine & Lowell" class="w-14 h-14 rounded-full object-cover border-2 border-rose-500">
+                            <span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 font-medium block">Хозяева жилья</span>
+                            <h4 class="text-lg font-bold text-white">Catherine & Lowell</h4>
+                            <p class="text-xs text-slate-300 mt-0.5">Суперхозяева на Airbnb</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HOST MESSAGES & GUIDES -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-comments text-rose-500"></i> Сообщения от хозяев
+                    </h3>
+
+                    <!-- Message Card 1 -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/70 space-y-3">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-500">
+                            <span class="text-rose-600 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Важная информация об исследовании города</span>
+                            <span>Приветствие</span>
+                        </div>
+                        <div class="text-sm text-slate-700 leading-relaxed space-y-2">
+                            <p class="font-semibold text-slate-900">Здравствуйте, Андрей!</p>
+                            <p>Добро пожаловать в Будапешт! 🏙️ Будем рады принять вас в нашем городе! Ваше бронирование подтверждено.</p>
+                            <ul class="list-disc list-inside space-y-1 text-slate-600 pl-1">
+                                <li>Вы забронировали жилье с указанием <strong>правильного количества гостей (5 человек)</strong>. Наши уборщики подготовят постельные принадлежности соответствующим образом.</li>
+                                <li>Ваше бронирование начинается <strong>15 декабря 2026 г. (заселение ПОСЛЕ 16:00)</strong> и заканчивается <strong>22 декабря 2026 г. (выезд ДО 10:00)</strong> — всего <strong>7 ночей</strong>.</li>
+                                <li>Инструкции по самостоятельному заселению будут доступны за <strong>48 часов до прибытия</strong>. Точный адрес также будет указан в инструкции.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Useful Travel Links Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                        <a href="https://www.budapestinfo.hu/" target="_blank" rel="noopener noreferrer" 
+                            class="p-3.5 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl flex items-center gap-3 transition">
+                            <i class="fa-solid fa-compass text-blue-600 text-xl"></i>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Инфо о Будапеште</span>
+                                <span class="text-[11px] text-slate-500">budapestinfo.hu</span>
+                            </div>
+                        </a>
+
+                        <a href="https://bkk.hu/en/visiting-budapest/" target="_blank" rel="noopener noreferrer" 
+                            class="p-3.5 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-xl flex items-center gap-3 transition">
+                            <i class="fa-solid fa-bus text-purple-600 text-xl"></i>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Общественный транспорт</span>
+                                <span class="text-[11px] text-slate-500">BKK Budapest</span>
+                            </div>
+                        </a>
+
+                        <a href="https://justbudapest.com/parking-in-budapest/" target="_blank" rel="noopener noreferrer" 
+                            class="p-3.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-xl flex items-center gap-3 transition">
+                            <i class="fa-solid fa-square-p text-emerald-600 text-xl"></i>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Советы по парковке</span>
+                                <span class="text-[11px] text-slate-500">justbudapest.com</span>
+                            </div>
+                        </a>
+
+                        <a href="https://www.accuweather.com/en/hu/budapest/187423/daily-weather-forecast/187423" target="_blank" rel="noopener noreferrer" 
+                            class="p-3.5 bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-xl flex items-center gap-3 transition">
+                            <i class="fa-solid fa-cloud-sun text-amber-600 text-xl"></i>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Прогноз погоды</span>
+                                <span class="text-[11px] text-slate-500">AccuWeather</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Message Card 2 (Amenities) -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/70 space-y-3">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-500">
+                            <span class="text-indigo-600 flex items-center gap-1.5"><i class="fa-solid fa-box-open"></i> Что предоставляется в квартире</span>
+                            <span>Детали проживания</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+                            <div class="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200/60">
+                                <span class="font-bold text-emerald-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check"></i> Входит в стоимость:
+                                </span>
+                                <ul class="space-y-1 text-slate-600 pl-4 list-disc">
+                                    <li>Широкий ассортимент кухонной утвари и посуды</li>
+                                    <li>Принадлежности для уборки</li>
+                                    <li>Фен и утюг для одежды</li>
+                                    <li>2 вида полотенец на каждого гостя (банные и салфетки)</li>
+                                    <li>Соль и масло (по запросу перед приездом)</li>
+                                </ul>
+                            </div>
+                            <div class="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200/60">
+                                <span class="font-bold text-rose-600 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-xmark"></i> Не предоставляется:
+                                </span>
+                                <p class="text-slate-600 text-xs leading-relaxed">
+                                    <strong>Шампунь и гели для душа</strong> не предоставляются из-за индивидуальных аллергий и предпочтений гостей. Рядом с квартирой есть магазины, где их легко приобрести.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HOUSE RULES & IMPORTANT INFORMATION -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-shield-halved text-rose-500"></i> Правила дома и важная информация
+                    </h3>
+
+                    <p class="text-xs sm:text-sm text-slate-600 italic bg-amber-50/60 p-3.5 rounded-xl border border-amber-200/60 text-amber-900">
+                        <i class="fa-solid fa-heart text-rose-500 mr-1"></i> Берегите и уважайте дом, в котором будете жить: у него есть любящие хозяева.
+                    </p>
+
+                    <!-- Rules Quick Icons Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-2.5">
+                            <i class="fa-solid fa-users text-slate-600"></i>
+                            <span class="text-xs font-semibold text-slate-800">Максимум 6 гостей</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-2.5">
+                            <i class="fa-solid fa-ban-smoking text-rose-600"></i>
+                            <span class="text-xs font-semibold text-slate-800">Курение запрещено</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-2.5">
+                            <i class="fa-solid fa-[#000] fa-paw text-slate-600"></i>
+                            <span class="text-xs font-semibold text-slate-800">Без питомцев</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-2.5">
+                            <i class="fa-solid fa-volume-xmark text-slate-600"></i>
+                            <span class="text-xs font-semibold text-slate-800">Тишина: 22:00 – 08:00</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-2.5">
+                            <i class="fa-solid fa-champagne-glasses text-rose-600"></i>
+                            <span class="text-xs font-semibold text-slate-800">Вечеринки запрещены</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-2.5">
+                            <i class="fa-solid fa-camera-retro text-slate-600"></i>
+                            <span class="text-xs font-semibold text-slate-800">Без фотосъемки</span>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Rules Sections -->
+                    <div class="space-y-4 text-xs sm:text-sm text-slate-700">
+                        
+                        <!-- Late Check-out Policy -->
+                        <div class="bg-rose-50/50 p-4 rounded-xl border border-rose-100 space-y-1.5">
+                            <h4 class="font-bold text-rose-900 flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-rose-600"></i> Поздний выезд (Late Check-out Policy)
+                            </h4>
+                            <p class="text-slate-600 leading-relaxed">
+                                Поздний выезд должен быть согласован заранее. При выезде с опозданием без предварительного уведомления взимается дополнительная плата:
+                            </p>
+                            <ul class="list-disc list-inside font-semibold text-rose-950 pl-1">
+                                <li>€20 в час за первые 2 часа</li>
+                                <li>€30 в час начиная с 3-го часа</li>
+                            </ul>
+                        </div>
+
+                        <!-- Towel Care & Smoking Penalties -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <h4 class="font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-mattress-pillow text-slate-600"></i> Уход за полотенцами
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    Используйте полотенца только для тела и волос. Избегайте снятия макияжа, лака для ногтей, чистки обуви или вытирания пятен пищи.
+                                </p>
+                                <p class="text-xs font-bold text-rose-700">
+                                    Штраф за испорченное/утерянное полотенце — €10 / шт. Глубокая чистка — до €50.
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                <h4 class="font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-joint text-rose-600"></i> Штраф за курение
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    Курение внутри квартиры строго запрещено.
+                                </p>
+                                <p class="text-xs font-bold text-rose-700 mt-2">
+                                    При обнаружении следов курения взимается штраф в размере €200.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Before Check-out Checklist -->
+                        <div class="bg-slate-900 text-white p-5 rounded-2xl space-y-3">
+                            <h4 class="font-bold text-emerald-400 flex items-center gap-2 text-base">
+                                <i class="fa-solid fa-list-check"></i> Перед выездом (Check-out List)
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex items-start gap-2.5">
+                                    <i class="fa-solid fa-lightbulb text-amber-400 text-base mt-0.5"></i>
+                                    <div>
+                                        <span class="font-bold block text-white">Выключите приборы</span>
+                                        <span class="text-slate-300">Turn all lights off when you leave.</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex items-start gap-2.5">
+                                    <i class="fa-solid fa-key text-emerald-400 text-base mt-0.5"></i>
+                                    <div>
+                                        <span class="font-bold block text-white">Заприте дверь</span>
+                                        <span class="text-slate-300">Make sure door locks properly.</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex items-start gap-2.5">
+                                    <i class="fa-solid fa-car text-rose-400 text-base mt-0.5"></i>
+                                    <div>
+                                        <span class="font-bold block text-white">Пульт от гаража</span>
+                                        <span class="text-slate-300">Return garage remote to apartment.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Apartment Photo Gallery Grid (001.png to 022.png) -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-rose-500"></i> Фотографии апартаментов
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Интерьер и удобства квартиры в Будапеште</p>
+                        </div>
+                        <button onclick="toggleExpandApartmentPhotos()" id="apt-gallery-toggle-btn" class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-100 transition">
+                            Показать все 22 фото
+                        </button>
+                    </div>
+
+                    <!-- Main Thumbnails Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" id="apartment-gallery-grid">
+                        <!-- Dynamically populated by JS inside apartment tab -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 3: TRIP PHOTOS ALBUM -->
+            <div id="tab-content-photos" class="tab-content hidden space-y-6">
+                <div class="bg-white p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
+                    <div class="w-20 h-20 bg-pink-50 text-pink-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+                        <i class="fa-solid fa-images"></i>
+                    </div>
+                    <div class="max-w-md mx-auto space-y-2">
+                        <h3 class="text-2xl font-black text-slate-900">Альбом поездки</h3>
+                        <p class="text-slate-500 text-sm font-medium">Скоро обновится</p>
+                    </div>
+                    <div class="pt-2">
+                        <span class="inline-flex items-center gap-2 text-xs font-bold text-pink-600 bg-pink-50 px-4 py-2 rounded-xl border border-pink-100">
+                            <i class="fa-solid fa-clock"></i> Раздел обновляется
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: INTERNET & WI-FI -->
+            <div id="tab-content-internet" class="tab-content hidden space-y-6">
+                <div class="bg-white p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
+                    <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+                        <i class="fa-solid fa-wifi"></i>
+                    </div>
+                    <div class="max-w-md mx-auto space-y-2">
+                        <h3 class="text-2xl font-black text-slate-900">Интернет & Wi-Fi</h3>
+                        <p class="text-slate-500 text-sm font-medium">Скоро обновится</p>
+                    </div>
+                    <div class="pt-2">
+                        <span class="inline-flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
+                            <i class="fa-solid fa-clock"></i> Раздел обновляется
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 5: IMPORTANT PHONES & EMERGENCY -->
+            <div id="tab-content-phones" class="tab-content hidden space-y-6">
+                <div class="bg-white p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+                        <i class="fa-solid fa-phone-volume"></i>
+                    </div>
+                    <div class="max-w-md mx-auto space-y-2">
+                        <h3 class="text-2xl font-black text-slate-900">Важные телефоны</h3>
+                        <p class="text-slate-500 text-sm font-medium">Скоро обновится</p>
+                    </div>
+                    <div class="pt-2">
+                        <span class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                            <i class="fa-solid fa-clock"></i> Раздел обновляется
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 no-print">
+            <p>Будапешт 2026 — Личный кабинет для Юрия и Татьяны Принько</p>
+        </footer>
+    </div>
+
+    <!-- Photo Lightbox Modal -->
+    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex flex-col justify-between p-4 sm:p-6 transition-opacity duration-200 select-none">
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center text-white max-w-5xl w-full mx-auto">
+            <span id="lightbox-counter" class="text-sm font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">01 / 22</span>
+            <button onclick="closeLightbox()" class="text-white hover:text-rose-400 text-2xl w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Main Image View -->
+        <div class="flex-1 flex items-center justify-center my-4 relative max-w-5xl w-full mx-auto">
+            <button onclick="prevPhoto()" class="absolute left-2 sm:left-4 z-10 text-white bg-black/50 hover:bg-rose-600 p-3 sm:p-4 rounded-2xl transition border border-white/10 backdrop-blur-sm">
+                <i class="fa-solid fa-chevron-left text-lg sm:text-xl"></i>
+            </button>
+
+            <div class="max-h-[75vh] max-w-full flex items-center justify-center overflow-hidden rounded-2xl shadow-2xl">
+                <img id="lightbox-img" src="" alt="Apartment Photo" class="max-h-[75vh] max-w-full object-contain rounded-2xl transition-transform duration-200">
+            </div>
+
+            <button onclick="nextPhoto()" class="absolute right-2 sm:right-4 z-10 text-white bg-black/50 hover:bg-rose-600 p-3 sm:p-4 rounded-2xl transition border border-white/10 backdrop-blur-sm">
+                <i class="fa-solid fa-chevron-right text-lg sm:text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Bottom Caption -->
+        <div class="text-center text-slate-300 text-xs font-semibold max-w-5xl w-full mx-auto" id="lightbox-filename">
+            001.png
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_PIN = "122026";
+
+        // Photos Data (001.png to 022.png)
+        const TOTAL_PHOTOS = 22;
+        let currentPhotoIndex = 0;
+        let isAptPhotosExpanded = false;
+
+        function getPhotoFilename(index) {
+            const num = String(index + 1).padStart(3, '0');
+            return `${num}.png`;
+        }
+
+        // Render apartment gallery preview or full grid inside apartment tab
+        function renderApartmentGallery() {
+            const aptGrid = document.getElementById('apartment-gallery-grid');
+            const toggleBtn = document.getElementById('apt-gallery-toggle-btn');
+            if (!aptGrid) return;
+
+            let html = '';
+            const countToShow = isAptPhotosExpanded ? TOTAL_PHOTOS : 8;
+
+            for (let i = 0; i < countToShow; i++) {
+                const filename = getPhotoFilename(i);
+                html += `
+                    <div onclick="openLightbox(${i})" class="group relative aspect-4/3 rounded-xl overflow-hidden cursor-pointer bg-slate-100 border border-slate-200 shadow-sm">
+                        <img src="${filename}" onerror="this.onerror=null; this.src='https://placehold.co/600x450/f1f5f9/475569?text=Фото+${filename}';" alt="Фото ${filename}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300 flex items-end p-2">
+                            <span class="text-[10px] text-white font-bold bg-black/60 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">${filename}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            aptGrid.innerHTML = html;
+
+            if (toggleBtn) {
+                toggleBtn.innerText = isAptPhotosExpanded ? "Свернуть (показать 8)" : "Показать все 22 фото";
+            }
+        }
+
+        function toggleExpandApartmentPhotos() {
+            isAptPhotosExpanded = !isAptPhotosExpanded;
+            renderApartmentGallery();
+        }
+
+        // Lightbox Functions
+        function openLightbox(index) {
+            currentPhotoIndex = index;
+            updateLightbox();
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function updateLightbox() {
+            const filename = getPhotoFilename(currentPhotoIndex);
+            const img = document.getElementById('lightbox-img');
+            img.src = filename;
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = `https://placehold.co/800x600/f1f5f9/475569?text=Фото+${filename}`;
+            };
+            document.getElementById('lightbox-counter').innerText = `${String(currentPhotoIndex + 1).padStart(2, '0')} / ${TOTAL_PHOTOS}`;
+            document.getElementById('lightbox-filename').innerText = `Файл: ${filename}`;
+        }
+
+        function prevPhoto() {
+            currentPhotoIndex = (currentPhotoIndex - 1 + TOTAL_PHOTOS) % TOTAL_PHOTOS;
+            updateLightbox();
+        }
+
+        function nextPhoto() {
+            currentPhotoIndex = (currentPhotoIndex + 1) % TOTAL_PHOTOS;
+            updateLightbox();
+        }
+
+        function checkPassword(event) {
+            event.preventDefault();
+            const input = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (input === CORRECT_PIN) {
+                sessionStorage.setItem('budapest_auth', 'true');
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                if (errorMsg) errorMsg.classList.add('hidden');
+            } else {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('budapest_auth');
+            document.getElementById('login-gate').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('password-input').value = '';
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['flight', 'hotel', 'photos', 'internet', 'phones'];
+            
+            tabs.forEach(id => {
+                const content = document.getElementById(`tab-content-${id}`);
+                const btn = document.getElementById(`tab-btn-${id}`);
+                
+                if (content) {
+                    if (id === tabId) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                }
+                
+                if (btn) {
+                    if (id === tabId) {
+                        btn.className = 'tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-pink-600 text-white shadow-sm transition';
+                    } else {
+                        btn.className = 'tab-btn flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800 transition';
+                    }
+                }
+            });
+        }
+
+        function updateCountdown() {
+            const flightDate = new Date('2026-12-15T14:25:00').getTime();
+            const now = new Date().getTime();
+            const diff = flightDate - now;
+
+            const countdownElem = document.getElementById('countdown');
+            if (!countdownElem) return;
+
+            if (diff <= 0) {
+                countdownElem.innerText = "Рейс отправлен!";
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            countdownElem.innerText = `${days}д ${hours}ч ${minutes}м`;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderApartmentGallery();
+            updateCountdown();
+            setInterval(updateCountdown, 60000);
+
+            // Maintain login state during session
+            if (sessionStorage.getItem('budapest_auth') === 'true') {
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
